@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Familienzentrale">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" type="image/png" href="icon.png">
-  <title>Familienzentrale Wolf 4.7</title>
+  <title>Familienzentrale Wolf 4.8</title>
   <style>
     :root{font-family:system-ui,-apple-system,Arial,sans-serif;color-scheme:light;--bg:#eef3f8;--card:#fff;--fg:#19253b;--muted:#66758a;--line:#dce5ee;--accent:#4385f5;--soft:#eaf2ff}
     body.dark{color-scheme:dark;--bg:#0d1625;--card:#19263a;--fg:#f2f6ff;--muted:#adbacd;--line:#36465f;--accent:#8dbaff;--soft:#283b58}
@@ -51,6 +51,7 @@ body .header button { font-weight:600; }
 <style>
 #wasteCard{margin-bottom:16px;padding:15px 20px;max-width:100%;border:2px solid var(--line)}#wasteCard.waste-urgent{border:3px solid #e6a51a;box-shadow:0 0 0 3px #e6a51a33;background:var(--card)}#wasteMain{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.waste-bin{width:44px;height:53px;flex:none}.waste-urgent .waste-bin{width:65px;height:78px}.waste-title{font-weight:800;font-size:18px}.waste-urgent .waste-title{font-size:clamp(23px,3vw,36px);color:var(--fg)}.waste-line{display:flex;align-items:center;gap:8px;margin:6px 0}.waste-dot{display:inline-block;width:12px;height:12px;border-radius:4px;flex:none}.waste-event{cursor:default!important}.waste-details{margin-top:10px;font-size:13px}.waste-details summary{cursor:pointer;color:var(--muted)}
 </style>
+<style>.event-location{display:block;font-size:.95em;opacity:.85;margin-top:3px;white-space:normal;overflow-wrap:anywhere}</style>
 </head>
 <body>
   <main id="loginScreen" class="login card">
@@ -66,7 +67,7 @@ body .header button { font-weight:600; }
   </main>
   <main id="dashboard" class="shell hidden">
     <header class="header">
-      <div><div id="dateNow" class="muted"></div><div id="clock" class="clock">--:--</div><strong>🏡 Unsere Familienzentrale <span class="pill">Version 4.7 🗑️</span></strong></div>
+      <div><div id="dateNow" class="muted"></div><div id="clock" class="clock">--:--</div><strong>🏡 Unsere Familienzentrale <span class="pill">Version 4.8 📍</span></strong></div>
       <div><div id="weather" class="weather">🌤 Wetter wird geladen …</div><div class="muted">Neuenhaus · <span id="themeLabel"></span></div><div class="row" style="margin-top:10px"><button id="themeButton">Design: Automatisch</button><button id="logoutButton">Abmelden</button></div></div>
     </header>
     <nav class="page-nav adult-only" aria-label="Zentrale wechseln"><button id="familyPageButton" type="button" aria-pressed="true">🏡 Familie</button><button id="techPageButton" type="button" aria-pressed="false">⚙️ Technik ›</button></nav>
@@ -108,6 +109,7 @@ body .header button { font-weight:600; }
     <section class="modal card" role="dialog" aria-modal="true" aria-labelledby="eventHeading">
       <form id="eventForm" class="dialog-form"><h2 id="eventHeading">Termin hinzufügen</h2>
         <label>Termin<input id="eventTitle" maxlength="200" required></label>
+        <label>📍 Ort (optional)<input id="eventLocation" type="text" maxlength="160" placeholder="z. B. Sportplatz Neuenhaus"></label>
         <label>Datum<input id="eventDate" type="date" required></label>
         <label>Uhrzeit<input id="eventTime" type="time"></label>
         <label>Farbe<select id="eventColor"><option value="#60a5fa">Blau</option><option value="#f472b6">Rosa</option><option value="#fbbf24">Gelb</option><option value="#4ade80">Grün</option><option value="#a78bfa">Lila</option></select></label>
@@ -158,7 +160,7 @@ body .header button { font-weight:600; }
   $('themeButton').onclick=()=>{theme=theme==='auto'?'light':theme==='light'?'dark':'auto';applyTheme()};
   function tick(){const now=new Date();$('clock').textContent=now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});$('dateNow').textContent=now.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});applyTheme();renderWaste()}
   function localFromISO(iso){return new Date(iso)}
-  function renderCalendar(){const y=shownMonth.getFullYear(),m=shownMonth.getMonth(),first=(new Date(y,m,1).getDay()+6)%7,count=new Date(y,m+1,0).getDate(),total=Math.ceil((first+count)/7)*7,c=$('calendar');$('monthLabel').textContent=new Date(y,m,1).toLocaleDateString('de-DE',{month:'long',year:'numeric'});c.replaceChildren();for(const d of ['Mo','Di','Mi','Do','Fr','Sa','So']){const div=document.createElement('div');div.className='weekday';div.textContent=d;c.append(div)}for(let i=0;i<total;i++){const d=new Date(y,m,i-first+1),date=dateKey(d),cell=document.createElement('div');cell.className='day'+(d.getMonth()!==m?' other':'')+(date===dateKey(new Date())?' today':'');const strong=document.createElement('strong');strong.textContent=d.getDate();cell.append(strong);cell.addEventListener('click',e=>{if(e.target===cell||e.target===strong)openEvent(date)});for(const event of appointments.filter(a=>!a.title.startsWith(schoolPrefix)&&dateKey(localFromISO(a.starts_at))===date)){const el=document.createElement('div');el.className='event';el.style.borderLeft='4px solid '+(/^#[0-9a-fA-F]{6}$/.test(event.color||'')?event.color:'#60a5fa');const when=localFromISO(event.starts_at);el.textContent=(when.getHours()===12&&when.getMinutes()===0?'':when.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' ')+event.title;el.title='Tippen zum Löschen';el.onclick=async()=>{if(confirm('Termin „'+event.title+'“ löschen?'))await mutation('appointments','DELETE','?id=eq.'+encodeURIComponent(event.id)+'&family_id=eq.'+encodeURIComponent(familyId))};cell.append(el)}c.append(cell)}}
+  function renderCalendar(){const y=shownMonth.getFullYear(),m=shownMonth.getMonth(),first=(new Date(y,m,1).getDay()+6)%7,count=new Date(y,m+1,0).getDate(),total=Math.ceil((first+count)/7)*7,c=$('calendar');$('monthLabel').textContent=new Date(y,m,1).toLocaleDateString('de-DE',{month:'long',year:'numeric'});c.replaceChildren();for(const d of ['Mo','Di','Mi','Do','Fr','Sa','So']){const div=document.createElement('div');div.className='weekday';div.textContent=d;c.append(div)}for(let i=0;i<total;i++){const d=new Date(y,m,i-first+1),date=dateKey(d),cell=document.createElement('div');cell.className='day'+(d.getMonth()!==m?' other':'')+(date===dateKey(new Date())?' today':'');const strong=document.createElement('strong');strong.textContent=d.getDate();cell.append(strong);cell.addEventListener('click',e=>{if(e.target===cell||e.target===strong)openEvent(date)});for(const event of appointments.filter(a=>!a.title.startsWith(schoolPrefix)&&dateKey(localFromISO(a.starts_at))===date)){const el=document.createElement('div');el.className='event';el.style.borderLeft='4px solid '+(/^#[0-9a-fA-F]{6}$/.test(event.color||'')?event.color:'#60a5fa');const when=localFromISO(event.starts_at);el.textContent=(when.getHours()===12&&when.getMinutes()===0?'':when.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' ')+event.title.split('\n📍 ')[0];const location=event.title.split('\n📍 ').slice(1).join('\n📍 ');if(location){const place=document.createElement('span');place.className='event-location';place.textContent='📍 '+location;el.append(place)}el.title='Tippen zum Löschen';el.onclick=async()=>{if(confirm('Termin „'+event.title+'“ löschen?'))await mutation('appointments','DELETE','?id=eq.'+encodeURIComponent(event.id)+'&family_id=eq.'+encodeURIComponent(familyId))};cell.append(el)}c.append(cell)}}
   const birthdayPrefix='🎂 Geburtstag: ';
   function birthdayOn(source,year){const original=localFromISO(source.starts_at);const month=original.getMonth(),day=original.getDate();const leapFallback=month===1&&day===29&&new Date(year,1,29).getMonth()!==1;return new Date(year,month,leapFallback?28:day)}
   function birthdayEntries(){return appointments.filter(e=>e.title.startsWith(birthdayPrefix))}
@@ -230,7 +232,7 @@ body .header button { font-weight:600; }
   $('prevMonth').onclick=()=>{shownMonth=new Date(shownMonth.getFullYear(),shownMonth.getMonth()-1,1);renderFullCalendar()};$('nextMonth').onclick=()=>{shownMonth=new Date(shownMonth.getFullYear(),shownMonth.getMonth()+1,1);renderFullCalendar()};$('thisMonth').onclick=()=>{shownMonth=new Date();renderFullCalendar()};
   function openEvent(date=dateKey(new Date())){$('eventForm').reset();$('eventDate').value=date;$('eventOverlay').classList.remove('hidden');$('eventTitle').focus()}
   $('newEvent').onclick=()=>openEvent();$('cancelEvent').onclick=()=>$('eventOverlay').classList.add('hidden');
-  $('eventForm').onsubmit=async e=>{e.preventDefault();const day=$('eventDate').value,time=$('eventTime').value||'12:00',date=new Date(day+'T'+time+':00');if(!Number.isFinite(date.getTime()))return;const saved=await mutation('appointments','POST','',{title:$('eventTitle').value.trim(),family_id:familyId,starts_at:date.toISOString(),color:$('eventColor').value});if(saved){$('eventOverlay').classList.add('hidden');shownMonth=new Date(date.getFullYear(),date.getMonth(),1);renderFullCalendar()}};
+  $('eventForm').onsubmit=async e=>{e.preventDefault();const day=$('eventDate').value,time=$('eventTime').value||'12:00',date=new Date(day+'T'+time+':00');if(!Number.isFinite(date.getTime()))return;const saved=await mutation('appointments','POST','',{title:$('eventTitle').value.trim()+($('eventLocation').value.trim()?'\n📍 '+$('eventLocation').value.trim():''),family_id:familyId,starts_at:date.toISOString(),color:$('eventColor').value});if(saved){$('eventOverlay').classList.add('hidden');shownMonth=new Date(date.getFullYear(),date.getMonth(),1);renderFullCalendar()}};
   async function weather(){try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.50&longitude=6.97&current=temperature_2m,weather_code&timezone=Europe%2FBerlin');if(!r.ok)throw Error();const j=await r.json(),code=j.current.weather_code;const emoji=code===0?'☀️':code<=3?'⛅':code<=48?'🌫️':code<=67?'🌧️':code<=77?'❄️':'🌦️';$('weather').textContent=emoji+' '+Math.round(j.current.temperature_2m)+'°C'}catch{$('weather').textContent='🌤 Wetter nicht verfügbar'}}
 
   // Version 3.6: lokale Kachel-Auswahl; keine Gerätezugangsdaten im HTML.
