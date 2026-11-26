@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Familienzentrale">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" type="image/png" href="icon.png">
-  <title>Familienzentrale Wolf 4.5</title>
+  <title>Familienzentrale Wolf 4.6</title>
   <style>
     :root{font-family:system-ui,-apple-system,Arial,sans-serif;color-scheme:light;--bg:#eef3f8;--card:#fff;--fg:#19253b;--muted:#66758a;--line:#dce5ee;--accent:#4385f5;--soft:#eaf2ff}
     body.dark{color-scheme:dark;--bg:#0d1625;--card:#19263a;--fg:#f2f6ff;--muted:#adbacd;--line:#36465f;--accent:#8dbaff;--soft:#283b58}
@@ -63,7 +63,7 @@ body .header button { font-weight:600; }
   </main>
   <main id="dashboard" class="shell hidden">
     <header class="header">
-      <div><div id="dateNow" class="muted"></div><div id="clock" class="clock">--:--</div><strong>🏡 Unsere Familienzentrale <span class="pill">Version 4.5 ⌨️</span></strong></div>
+      <div><div id="dateNow" class="muted"></div><div id="clock" class="clock">--:--</div><strong>🏡 Unsere Familienzentrale <span class="pill">Version 4.6 ⌨️</span></strong></div>
       <div><div id="weather" class="weather">🌤 Wetter wird geladen …</div><div class="muted">Neuenhaus · <span id="themeLabel"></span></div><div class="row" style="margin-top:10px"><button id="themeButton">Design: Automatisch</button><button id="logoutButton">Abmelden</button></div></div>
     </header>
     <nav class="page-nav adult-only" aria-label="Zentrale wechseln"><button id="familyPageButton" type="button" aria-pressed="true">🏡 Familie</button><button id="techPageButton" type="button" aria-pressed="false">⚙️ Technik ›</button></nav>
@@ -308,10 +308,11 @@ body .header button { font-weight:600; }
  function commit(value){if(!target)return;const el=target;el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));close()}
  function action(k){if(!target)return;if(k==='cancel'){close();return}if(k==='clear'){digits='';replace=false;redraw();return}if(k==='today'){const d=new Date();digits=isTime?pad(d.getHours())+pad(d.getMinutes()):pad(d.getDate())+pad(d.getMonth()+1)+d.getFullYear();replace=true;redraw();return}if(k==='ok'){if(!digits&&!target.required){commit('');return}if(isTime){if(digits.length!==4||+digits.slice(0,2)>23||+digits.slice(2)>59){error.textContent='Bitte gültige Uhrzeit eingeben.';return}commit(digits.slice(0,2)+':'+digits.slice(2));return}const day=+digits.slice(0,2),month=+digits.slice(2,4),year=+digits.slice(4),d=new Date(0);d.setFullYear(year,month-1,day);if(digits.length!==8||year<1||d.getFullYear()!==year||d.getMonth()!==month-1||d.getDate()!==day){error.textContent='Bitte gültiges Datum eingeben.';return}commit(digits.slice(4)+'-'+digits.slice(2,4)+'-'+digits.slice(0,2));return}if(k==='back'){digits=digits.slice(0,-1);replace=false}else if(/^\d$/.test(k)){if(replace){digits='';replace=false}if(digits.length<(isTime?4:8))digits+=k}redraw()}
  for(const k of ['1','2','3','4','5','6','7','8','9','back','0','ok']){const b=document.createElement('button');b.type='button';b.dataset.date=k;b.textContent=k==='back'?'⌫':k==='ok'?'✓':k;document.getElementById('wolfDateKeys').append(b)}
- panel.addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(b)action(b.dataset.date);else if(e.target===panel)close()});
+ panel.addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(b)action(b.dataset.date)});
  const eligible=el=>desktop()&&el instanceof HTMLInputElement&&['date','time'].includes(el.type)&&!el.disabled&&!el.readOnly;
- document.addEventListener('pointerdown',e=>{if(eligible(e.target)){e.preventDefault();open(e.target)}},true);
- document.addEventListener('click',e=>{if(eligible(e.target)){e.preventDefault();open(e.target)}},true);
+ // Prevent the native picker on pointerdown, but open only after the click completes.
+ document.addEventListener('pointerdown',e=>{if(eligible(e.target)){e.preventDefault()}},true);
+ document.addEventListener('click',e=>{if(eligible(e.target)){e.preventDefault();e.stopPropagation();open(e.target)}},true);
  document.addEventListener('keydown',e=>{if(!target){if(eligible(e.target)&&['Enter',' '].includes(e.key)){e.preventDefault();open(e.target)}return}if(/^\d$/.test(e.key)||['Escape','Backspace','Enter'].includes(e.key)){e.preventDefault();action(({Escape:'cancel',Backspace:'back',Enter:'ok'})[e.key]||e.key)}},true);
 })();
 </script>
