@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Familienzentrale">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" type="image/png" href="icon.png">
-  <title>Familienzentrale Wolf 4.0</title>
+  <title>Familienzentrale Wolf 4.2</title>
   <style>
     :root{font-family:system-ui,-apple-system,Arial,sans-serif;color-scheme:light;--bg:#eef3f8;--card:#fff;--fg:#19253b;--muted:#66758a;--line:#dce5ee;--accent:#4385f5;--soft:#eaf2ff}
     body.dark{color-scheme:dark;--bg:#0d1625;--card:#19263a;--fg:#f2f6ff;--muted:#adbacd;--line:#36465f;--accent:#8dbaff;--soft:#283b58}
@@ -40,7 +40,10 @@
 body .header button, body .header .pill { color:var(--fg); background:var(--card); text-shadow:none; }
 body .header button { font-weight:600; }
 </style>
-</head>
+<style>
+#schoolNext.has-exam{background:linear-gradient(120deg,#1d4ed8,#4338ca);color:#fff;border:3px solid #93c5fd;padding:24px;box-shadow:0 6px 20px #0003;text-align:center;overflow-wrap:anywhere}#schoolNext.has-exam.urgent{background:linear-gradient(120deg,#b91c1c,#991b1b);border-color:#fca5a5;color:#fff}#schoolNext .exam-countdown{font-size:clamp(34px,5vw,68px);font-weight:900;line-height:1.15;margin:10px 0}#schoolNext .exam-subject{display:block;font-size:clamp(24px,3vw,40px);font-weight:800}#schoolNext .exam-date{font-size:20px;font-weight:600}#schoolNext .exam-topic{margin-top:12px;padding:12px;border-radius:10px;background:#ffffff20;font-size:18px}
+#wolfDatePad{position:fixed;inset:0;z-index:1100;background:#0009;display:grid;place-items:center;padding:12px}#wolfDatePad .date-card{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:18px;padding:18px;width:min(420px,100%);max-height:96vh;overflow:auto;text-align:center}#wolfDatePad .date-display{font-size:32px;font-weight:800;letter-spacing:2px;margin:12px 0}#wolfDatePad .date-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}#wolfDatePad button{min-height:44px;font-size:20px}#wolfDatePad .date-error{color:#dc2626;min-height:1.5em}#wolfDatePad .date-actions{display:flex;gap:8px;margin-top:8px}#wolfDatePad .date-actions button{flex:1;font-size:16px}
+</style></head>
 <body>
   <main id="loginScreen" class="login card">
     <h1>🏡 Familienzentrale Wolf</h1>
@@ -55,7 +58,7 @@ body .header button { font-weight:600; }
   </main>
   <main id="dashboard" class="shell hidden">
     <header class="header">
-      <div><div id="dateNow" class="muted"></div><div id="clock" class="clock">--:--</div><strong>🏡 Unsere Familienzentrale <span class="pill">Version 4.0 ⌨️</span></strong></div>
+      <div><div id="dateNow" class="muted"></div><div id="clock" class="clock">--:--</div><strong>🏡 Unsere Familienzentrale <span class="pill">Version 4.2 ⌨️</span></strong></div>
       <div><div id="weather" class="weather">🌤 Wetter wird geladen …</div><div class="muted">Neuenhaus · <span id="themeLabel"></span></div><div class="row" style="margin-top:10px"><button id="themeButton">Design: Automatisch</button><button id="logoutButton">Abmelden</button></div></div>
     </header>
     <nav class="page-nav adult-only" aria-label="Zentrale wechseln"><button id="familyPageButton" type="button" aria-pressed="true">🏡 Familie</button><button id="techPageButton" type="button" aria-pressed="false">⚙️ Technik ›</button></nav>
@@ -253,10 +256,10 @@ body .header button { font-weight:600; }
   function schoolCountdown(a){const n=schoolDays(a);return n===0?'Heute!':n===1?'Morgen!':n<0?'Vorbei':'Noch '+n+' Tage'}
   function renderSchool(){const child=currentProfile==='Nelio',adult=['Papa','Mama'].includes(currentProfile);$('schoolCard').classList.toggle('hidden',!child);$('schoolAdmin').classList.toggle('hidden',!adult);const now=new Date(),day=now.getDay(),hm=pad(now.getHours())+':'+pad(now.getMinutes()),table=$('schoolTable');table.replaceChildren();const head=table.insertRow();['Uhrzeit','Mo','Di','Mi','Do','Fr'].forEach((v,i)=>{const th=document.createElement('th');th.textContent=v;if(i===day&&i>0)th.className='school-today';head.append(th)});for(const row of schoolRows){const tr=table.insertRow();row.forEach((v,i)=>{const td=tr.insertCell();if(!i){td.className='school-time';td.textContent=v;return}const [icon,color]=schoolSubjects[v];td.style.background=color;const pic=document.createElement('span');pic.textContent=icon;td.append(pic,document.createTextNode(v));if(i===day){td.classList.add('school-today');const [start,end]=row[0].split('–');if(hm>=start&&hm<end)td.classList.add('school-now')}})}
   const tomorrow=(day+1)%7;$('schoolHint').textContent=tomorrow===1?'⚽ Morgen ist Sport – Sportzeug einpacken!':day===1?'⚽ Heute ist Sport.':'Blauer Rahmen: heutiger Schultag · Grün: aktuelle Unterrichtszeit (laut Plan).';
-  const items=schoolItems(),upcoming=items.filter(a=>schoolDays(a)>=0),next=upcoming[0],box=$('schoolNext');box.replaceChildren();box.classList.toggle('urgent',!!next&&schoolDays(next)<=1);const h=document.createElement('strong');h.textContent=next?schoolSubjects[next.subject][0]+' Nächste Arbeit: '+next.subject:'📝 Keine Klassenarbeit eingetragen';box.append(h);if(next){const p=document.createElement('div');p.textContent=new Date(next.starts_at).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+' · '+schoolCountdown(next);box.append(p);if(next.topic){const t=document.createElement('div');t.textContent='Lernstoff: '+next.topic;box.append(t)}}
+  const items=schoolItems(),upcoming=items.filter(a=>schoolDays(a)>=0),next=upcoming[0],box=$('schoolNext');box.replaceChildren();box.classList.toggle('urgent',!!next&&schoolDays(next)<=1);box.classList.toggle('has-exam',!!next);const h=document.createElement('strong');h.className='exam-subject';h.textContent=next?schoolSubjects[next.subject][0]+' Nächste Arbeit: '+next.subject:'📝 Keine Klassenarbeit eingetragen';box.append(h);if(next){const count=document.createElement('div');count.className='exam-countdown';count.textContent=schoolCountdown(next);box.append(count);const p=document.createElement('div');p.className='exam-date';p.textContent=new Date(next.starts_at).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});box.append(p);if(next.topic){const t=document.createElement('div');t.className='exam-topic';t.textContent='Lernstoff: '+next.topic;box.append(t)}}
   for(const [id,entries,manage] of [['schoolList',upcoming,false],['schoolAdminList',items,true]]){const root=$(id);root.replaceChildren();if(!entries.length){const p=document.createElement('p');p.className='muted';p.textContent='Keine Klassenarbeiten eingetragen.';root.append(p)}for(const a of entries){const row=document.createElement('div');row.className='school-exam';const info=document.createElement('div'),name=document.createElement('strong'),meta=document.createElement('small');name.textContent=schoolSubjects[a.subject][0]+' '+a.subject;meta.textContent=new Date(a.starts_at).toLocaleDateString('de-DE')+' · '+schoolCountdown(a)+(a.topic?' · '+a.topic:'');info.append(name,meta);row.append(info);if(manage){const del=document.createElement('button');del.type='button';del.textContent='Löschen';del.onclick=async()=>{if(!['Papa','Mama'].includes(currentProfile)||!confirm('Klassenarbeit löschen?'))return;await mutation('appointments','DELETE','?id=eq.'+encodeURIComponent(a.id)+'&family_id=eq.'+encodeURIComponent(familyId))};row.append(del)}root.append(row)}}}
   for(const subject of Object.keys(schoolSubjects).filter(x=>x!=='Frühstück/Pause')){const opt=document.createElement('option');opt.value=subject;opt.textContent=schoolSubjects[subject][0]+' '+subject;$('schoolSubject').append(opt)}
-  $('schoolForm').onsubmit=async e=>{e.preventDefault();if(!['Papa','Mama'].includes(currentProfile)||!familyId)return;const subject=$('schoolSubject').value,topic=$('schoolTopic').value.trim(),date=new Date($('schoolDate').value+'T12:00:00');if(!schoolSubjects[subject]||!Number.isFinite(date.getTime()))return;const btn=$('schoolSave');btn.disabled=true;try{const ok=await mutation('appointments','POST','',{title:schoolPrefix+JSON.stringify({subject,topic}),starts_at:date.toISOString(),family_id:familyId,color:'#60a5fa'});$('schoolStatus').textContent=ok?'✓ Klassenarbeit gespeichert':'Speichern fehlgeschlagen.';if(ok)$('schoolForm').reset()}finally{btn.disabled=false}};
+  $('schoolForm').onsubmit=async e=>{e.preventDefault();if(!['Papa','Mama'].includes(currentProfile)||!familyId)return;const subject=$('schoolSubject').value,topic=$('schoolTopic').value.trim(),date=new Date($('schoolDate').value+'T12:00:00');if(!schoolSubjects[subject]||!Number.isFinite(date.getTime()))return;const btn=$('schoolSave');btn.disabled=true;try{const ok=await mutation('appointments','POST','',{title:schoolPrefix+JSON.stringify({subject,topic}),starts_at:date.toISOString(),family_id:familyId,color:'#60a5fa'});$('schoolStatus').textContent=ok?'✓ Klassenarbeit gespeichert':'Speichern fehlgeschlagen.';if(ok){$('schoolForm').reset();$('schoolAdmin').querySelector('details').open=false;switchCentralPage(0,false);window.scrollTo(0,0)} }finally{btn.disabled=false}};
 
   setInterval(tick,15000);setInterval(renderSchool,60000);setInterval(sync,15000);setInterval(weather,1800000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});weather();tick();if(session)showDashboard();
   </script>
@@ -285,5 +288,25 @@ body .header button { font-weight:600; }
 })();
 </script>
 
+<section id="wolfDatePad" class="hidden" role="dialog" aria-modal="true" aria-label="Datum oder Uhrzeit eingeben"><div class="date-card"><h2 id="wolfDateHeading">Datum eingeben</h2><p id="wolfDateHint" class="muted"></p><div id="wolfDateValue" class="date-display" aria-live="polite"></div><div class="date-keys" id="wolfDateKeys"></div><p id="wolfDateError" class="date-error" role="alert"></p><div class="date-actions"><button type="button" data-date="cancel">Abbrechen</button><button type="button" data-date="ok" class="primary">Übernehmen</button></div><div class="date-actions"><button type="button" data-date="today" id="wolfDateToday">Heute</button><button type="button" data-date="clear">Leeren</button></div></div></section>
+<script>
+(function(){
+ const panel=document.getElementById('wolfDatePad'), display=document.getElementById('wolfDateValue'), error=document.getElementById('wolfDateError');
+ const desktop=()=>!(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))&&!(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ let target=null,digits='',isTime=false,replace=false;
+ const pad=n=>String(n).padStart(2,'0');
+ function redraw(){const sample=isTime?'HH:MM':'TT.MM.JJJJ';let i=0;display.textContent=sample.replace(/[HTMJ]/g,c=>digits[i++]||c);error.textContent=''}
+ function close(){panel.classList.add('hidden');target=null;digits='';replace=false}
+ function open(el){if(target===el)return;target=el;isTime=el.type==='time';digits=el.value?(isTime?el.value.slice(0,5).replace(':',''):el.value.split('-').reverse().join('')):'';replace=!!digits;document.getElementById('wolfDateHeading').textContent=isTime?'🕒 Uhrzeit eingeben':'📅 Datum eingeben';document.getElementById('wolfDateHint').textContent=isTime?'Stunde und Minute (24 Stunden)':'Tag, Monat und Jahr – z. B. 02122026';document.getElementById('wolfDateToday').textContent=isTime?'Jetzt':'Heute';panel.classList.remove('hidden');redraw()}
+ function commit(value){if(!target)return;const el=target;el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));close()}
+ function action(k){if(!target)return;if(k==='cancel'){close();return}if(k==='clear'){digits='';replace=false;redraw();return}if(k==='today'){const d=new Date();digits=isTime?pad(d.getHours())+pad(d.getMinutes()):pad(d.getDate())+pad(d.getMonth()+1)+d.getFullYear();replace=true;redraw();return}if(k==='ok'){if(!digits&&!target.required){commit('');return}if(isTime){if(digits.length!==4||+digits.slice(0,2)>23||+digits.slice(2)>59){error.textContent='Bitte gültige Uhrzeit eingeben.';return}commit(digits.slice(0,2)+':'+digits.slice(2));return}const day=+digits.slice(0,2),month=+digits.slice(2,4),year=+digits.slice(4),d=new Date(0);d.setFullYear(year,month-1,day);if(digits.length!==8||year<1||d.getFullYear()!==year||d.getMonth()!==month-1||d.getDate()!==day){error.textContent='Bitte gültiges Datum eingeben.';return}commit(digits.slice(4)+'-'+digits.slice(2,4)+'-'+digits.slice(0,2));return}if(k==='back'){digits=digits.slice(0,-1);replace=false}else if(/^\d$/.test(k)){if(replace){digits='';replace=false}if(digits.length<(isTime?4:8))digits+=k}redraw()}
+ for(const k of ['1','2','3','4','5','6','7','8','9','back','0','ok']){const b=document.createElement('button');b.type='button';b.dataset.date=k;b.textContent=k==='back'?'⌫':k==='ok'?'✓':k;document.getElementById('wolfDateKeys').append(b)}
+ panel.addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(b)action(b.dataset.date);else if(e.target===panel)close()});
+ const eligible=el=>desktop()&&el instanceof HTMLInputElement&&['date','time'].includes(el.type)&&!el.disabled&&!el.readOnly;
+ document.addEventListener('pointerdown',e=>{if(eligible(e.target)){e.preventDefault();open(e.target)}},true);
+ document.addEventListener('click',e=>{if(eligible(e.target)){e.preventDefault();open(e.target)}},true);
+ document.addEventListener('keydown',e=>{if(!target){if(eligible(e.target)&&['Enter',' '].includes(e.key)){e.preventDefault();open(e.target)}return}if(/^\d$/.test(e.key)||['Escape','Backspace','Enter'].includes(e.key)){e.preventDefault();action(({Escape:'cancel',Backspace:'back',Enter:'ok'})[e.key]||e.key)}},true);
+})();
+</script>
 </body>
 </html>
