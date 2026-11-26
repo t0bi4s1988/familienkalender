@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Familienzentrale">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" type="image/png" href="icon.png">
-  <title>Familienzentrale Wolf 3.7</title>
+  <title>Familienzentrale Wolf 3.8</title>
   <style>
     :root{font-family:system-ui,-apple-system,Arial,sans-serif;color-scheme:light;--bg:#eef3f8;--card:#fff;--fg:#19253b;--muted:#66758a;--line:#dce5ee;--accent:#4385f5;--soft:#eaf2ff}
     body.dark{color-scheme:dark;--bg:#0d1625;--card:#19263a;--fg:#f2f6ff;--muted:#adbacd;--line:#36465f;--accent:#8dbaff;--soft:#283b58}
@@ -49,7 +49,7 @@
   </main>
   <main id="dashboard" class="shell hidden">
     <header class="header">
-      <div><div id="dateNow" class="muted"></div><div id="clock" class="clock">--:--</div><strong>🏡 Unsere Familienzentrale <span class="pill">Version 3.7 ⌨️</span></strong></div>
+      <div><div id="dateNow" class="muted"></div><div id="clock" class="clock">--:--</div><strong>🏡 Unsere Familienzentrale <span class="pill">Version 3.8 ⌨️</span></strong></div>
       <div><div id="weather" class="weather">🌤 Wetter wird geladen …</div><div class="muted">Neuenhaus · <span id="themeLabel"></span></div><div class="row" style="margin-top:10px"><button id="themeButton">Design: Automatisch</button><button id="logoutButton">Abmelden</button></div></div>
     </header>
     <nav class="page-nav adult-only" aria-label="Zentrale wechseln"><button id="familyPageButton" type="button" aria-pressed="true">🏡 Familie</button><button id="techPageButton" type="button" aria-pressed="false">⚙️ Technik ›</button></nav>
@@ -248,7 +248,7 @@
 <script>
 (function(){
  const panel=document.getElementById('wolfKeyboard'),keys=document.getElementById('wolfKeys');
- const desktopTouch=()=>!(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))&&!(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)&&navigator.maxTouchPoints>0;
+ const desktopTouch=()=>!(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))&&!(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  let field=null,shift=false,caps=false,numbers=false,originalMode=null;
  const eligible=el=>el instanceof HTMLElement&&el.matches('textarea,input:not([type]),input[type=text],input[type=email],input[type=password],input[type=search],input[type=tel],input[type=url]')&&!el.readOnly&&!el.disabled;
  function hide(){if(field){if(originalMode===null)field.removeAttribute('inputmode');else field.setAttribute('inputmode',originalMode)}field=null;panel.classList.add('hidden');document.body.classList.remove('kb-open');document.body.style.removeProperty('--kb-height')}
@@ -259,6 +259,7 @@
  panel.addEventListener('pointerdown',e=>{if(e.target.closest('button'))e.preventDefault()});panel.addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});panel.addEventListener('click',e=>{const btn=e.target.closest('[data-kb]');if(!btn)return;const k=btn.dataset.kb;if(k==='done'){const old=field;hide();if(old)old.blur();return}if(k==='123'||k==='ABC'){numbers=!numbers;draw();return}if(k==='⇧'){shift=!shift;draw();return}if(k==='⇪'){caps=!caps;draw();return}edit(k)});
  document.addEventListener('focusin',e=>{if(desktopTouch()&&eligible(e.target))show(e.target);else if(!panel.contains(e.target))hide()});
  document.addEventListener('pointerdown',e=>{if(!desktopTouch()||panel.contains(e.target))return;if(eligible(e.target)){show(e.target)}else if(field){hide()}},true);
+ document.addEventListener('click',e=>{if(desktopTouch()&&eligible(e.target)&&field!==e.target)show(e.target)});
  document.addEventListener('submit',hide,true);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&field){hide()}});window.addEventListener('resize',measure);
  new MutationObserver(()=>{if(field&&(!field.isConnected||!field.getClientRects().length))hide()}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
 })();
